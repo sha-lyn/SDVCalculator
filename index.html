@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Plasmatic Slime's Stardew Valley Crop Calculator">
+    <title>Stardew Valley Crop Calculator</title>
+    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Add cache-busting styles to ensure fresh rendering */
+        .calc-result { display: none !important; }
+        .crops-sold-result, .jarred-result, .wine-result, .aged-result { display: none !important; }
+    </style>
+</head>
+<body>
+  <div class="skip-btn"><a href="#content">Skip to content</a></div>
+        <div class="container">
+            <header class="header">
+                <img class="header__img" src="/img/plasmaticslime.svg" alt="plasmatic slime logo">
+                <h2 class="header__title">Plasmatic Slime</h2>
+            </header>
+            <nav class="navbar">
+                <ul class="navbar__links">
+                    <li><a href="/index.html">Home</a></li>
+                </ul>
+            </nav>
+            
+    <h1 id="sdvcalc-title">Stardew Valley Crop Calculator<h1>
+    <p id="disclaimer"><b>Disclaimer: </b>[Currently Still a Work in Progress] This calculator also only provides estimates based on Stardew Valley's 1.6 update game data. Actual results may vary depending on various in-game factors.</p>
+    <br>
+        <form id="crop-form">
+            <fieldset>
+                <legend id="sdv-legend">What is your Farming skill level?</legend>
+                <input type="range" id="lvl" name="lvl" min="0" max="14" value="1" oninput="this.nextElementSibling.value = this.value">
+                <output>1</output>
+            </fieldset>
+            <br>
+            
+            <fieldset>
+                <legend id="sdv-legend">What season are you choosing crops from?</legend>
+                <div class="radio-align">
+                    <label for="season">Spring <input type="radio" name="season" value="spring" id="spring" checked/></label>
+                    <label for="season">Summer <input type="radio" name="season" value="summer" id="summer"/></label>
+                    <label for="season">Fall <input type="radio" name="season" value="fall" id="fall"/></label>
+                    <label for="season">Winter <input type="radio" name="season" value="winter" id="winter"/></label>
+                </div>
+            </fieldset>
+            <br>
+            
+            <fieldset>
+                <legend id="sdv-legend">Do you have either of these Professions?</legend>
+                <label><input type="checkbox" name="tiller" id="tiller" value="tiller"> Tiller (+10% to crop value)</label>
+                <br>
+                <label><input type="checkbox" name="artisan" id="artisan" value="artisan"> Artisan (+40% to artisan goods)</label>
+            </fieldset>
+            <br>
+
+            <fieldset>
+                <legend id="sdv-legend">Choose your crop and type in the seed count you will be using.</legend>
+                <div class="crop-row">
+                    <select class="crop-select" name="crop-select" id="crop-select-1" value="crop-select-1" required>
+                        <option value="">— pick a crop —</option>
+                    </select>
+                    <input class="seed-count" type="number" name="seed-count" id="seed-count-1" value="seed-count-1" placeholder="Seeds" min="1" required>
+                </div>
+                <br>
+
+                <div class="crop-row" style="display: none;">
+                    <select class="crop-select" name="crop-select" id="crop-select-2" value="crop-select-2">
+                        <option value="">— pick a crop —</option>
+                    </select>
+                    <input class="seed-count" type="number" name="seed-count" id="seed-count-2" value="seed-count-2" placeholder="Seeds" min="1">
+                </div>
+            </fieldset>
+
+            <br>
+            
+            <button type="button" id="add-crop-button" onclick="addCropRow()">Add Another Crop</button>
+            <br><br>
+
+            <button type="reset">Clear Form</button>
+            <br>
+
+            <button type="submit">Calculate</button>
+        </form>
+
+        <div name="result" style="margin-top: 5rem; font-weight: bold;"></div>
+    </div>
+
+    <script>
+// Embedded JavaScript - Updated version with all fixes
+
+let cropsData = [];
+let probabilityData = [];
+
+// Global state
+let state = {
+    farmingLevel: 1,
+    season: 'spring',
+    hasTiller: false,
+    hasArtisan: false,
+    cropRows: [{ id: 1, cropName: '', seedCount: 0, cropsSold: 0, jarred: 0, wine: 0, aged: 0 }]
+};
+
+// Load JSON data
+async function loadData() {
+    try {
+        const [cropsResponse, probabilityResponse] = await Promise.all([
+            fetch('./attached_assets/SDVCrops_1753116833464.json'),
+            fetch('./attached_assets/SDVProbability_1753116833463.json')
+        ]);
+        
+        cropsData = await cropsResponse.json();
+        probabilityData = await probabilityResponse.json();
+        
+        console.log('Data loaded successfully');
+        initializeCalculator();
+    } catch (error) {
+        console.error('Error loading data:', error);
+        document.querySelector('#disclaimer').innerHTML = '<b>Error:</b> Could not load crop data. Please ensure the JSON files are accessible.';
+    }
+}
+
+// Initialize the calculator after DOM loads
+function initializeCalculator() {
+    setupEventListeners();
+    updateSeasonCrops();
+    updateProbabilityDisplay();
+    renderCropRows();
+}
+
+// Set up all event listeners
+function setupEventListeners() {
+    // Farming level slider
+    const levelSlider = document.getElementById('lvl');
+    const levelOutput = levelSlider.nextElementSibling;
+    
+    levelSlider.addEventListener('input', (e) => {
+        const level = parseInt(e.target.value);
+        state.farmingLevel = level;
+        levelOutput.textContent = level;
+        updateProbabilityDisplay();
+        recalculateAllRows();
+    });
+
+    // Season radio buttons
+    document.querySelectorAll('input[name="season"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            state.season = e.target.value;
+            updateSeasonCrops();
+            clearCropSelections();
+            renderCropRows();
+        });
+    });
+
+    // Profession checkboxes
+    document.getElementById('tiller').addEventListener('change', (e) => {
+        state.hasTiller = e.target.checked;
+        recalculateAllRows();
+    });
+
+    document.querySelector('input[name="artisan"]').addEventListener('change', (e) => {
+        state.hasArtisan = e.target.checked;
+        recalculateAllRows();
+    });
+
+    // Form submission
+    document.getElementById('crop-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        calculateAndDisplayResults();
+    });
+
+    // Reset button
+    document.querySelector('button[type="reset"]').addEventListener('click', (e) => {
+        e.preventDefault();
+        resetForm();
+    });
+}
+
+// Update probability display based on farming level
+function updateProbabilityDisplay() {
+    const currentProb = probabilityData.find(p => p['Farming level'] === state.farmingLevel);
+    const levelSlider = document.getElementById('lvl');
+    
+    // Remove existing probability display
+    const existingDisplay = document.querySelector('.probability-display');
+    if (existingDisplay) {
+        existingDisplay.remove();
+    }
+
+    if (currentProb) {
+        const probDisplay = document.createElement('div');
+        probDisplay.className = 'probability-display';
+        probDisplay.style.marginTop = '10px';
+        probDisplay.style.fontSize = '14px';
+        probDisplay.innerHTML = `
+            <strong>Crop Quality Chances:</strong> 
+            Base: ${currentProb.Base}, Silver: ${currentProb.Silver}, Gold: ${currentProb.Gold}
+        `;
+        levelSlider.parentElement.appendChild(probDisplay);
+    }
+}
+
+// Get crops for current season
+function getSeasonCrops() {
+    const seasonMap = {
+        'spring': 'Spring',
+        'summer': 'Summer', 
+        'fall': 'Fall',
+        'winter': 'Winter'
+    };
+    return cropsData.filter(crop => crop.Season === seasonMap[state.season]);
+}
+
+// Update crop dropdowns when season changes
+function updateSeasonCrops() {
+    const seasonCrops = getSeasonCrops();
+    const dropdowns = document.querySelectorAll('.crop-select');
+    
+    dropdowns.forEach(dropdown => {
+        // Save current value
+        const currentValue = dropdown.value;
+        
+        // Clear and repopulate
+        dropdown.innerHTML = '<option value="">— pick a crop —</option>';
+        
+        seasonCrops.forEach(crop => {
+            const option = document.createElement('option');
+            option.value = crop.Crop;
+            option.textContent = crop.Crop;
+            dropdown.appendChild(option);
+        });
+        
+        // Restore value if still valid for new season
+        if (seasonCrops.some(crop => crop.Crop === currentValue)) {
+            dropdown.value = currentValue;
+        }
+    });
+    updateAddButtonState();
+}
+
+// Clear all crop selections
+function clearCropSelections() {
+    state.cropRows.forEach(row => {
+        row.cropName = '';
+        row.seedCount = 0;
+        row.cropsSold = 0;
+        row.jarred = 0;
+        row.wine = 0;
+        row.aged = 0;
+    });
+}
+
+// Render crop rows in the DOM
+function renderCropRows() {
+    const cropRows = document.querySelectorAll('.crop-row');
+    
+    cropRows.forEach((row, index) => {
+        if (index < state.cropRows.length) {
+            const stateRow = state.cropRows[index];
+            const dropdown = row.querySelector('.crop-select');
+            const seedInput = row.querySelector('.seed-count');
+            
+            // Show this row
+            row.style.display = 'block';
+            
+            // Update dropdown and input
+            dropdown.value = stateRow.cropName;
+            seedInput.value = stateRow.seedCount || '';
+            
+            // Set up event listeners for this row
+            setupRowEventListeners(row, index);
+            
+            // Update calculation section
+            updateCalculationSection(row, index);
+        } else {
+            // Hide unused rows
+            row.style.display = 'none';
+        }
+    });
+    
+    updateAddButtonState();
+}
+
+// Add a new crop row
+function addCropRow() {
+    const seasonCrops = getSeasonCrops();
+    const selectedCrops = state.cropRows.map(row => row.cropName).filter(name => name !== '');
+    
+    // Check if all crops for this season are already selected
+    if (selectedCrops.length >= seasonCrops.length) {
+        return;
+    }
+    
+    // Check if we have available HTML rows
+    const cropRowElements = document.querySelectorAll('.crop-row');
+    if (state.cropRows.length >= cropRowElements.length) {
+        return;
+    }
+    
+    state.cropRows.push({
+        cropName: '',
+        seedCount: 0,
+        cropsSold: 0,
+        jarred: 0,
+        wine: 0,
+        aged: 0
+    });
+    renderCropRows();
+}
+
+// Update the state of the Add Another Crop button
+function updateAddButtonState() {
+    const addButton = document.getElementById('add-crop-button');
+    if (!addButton) return;
+    
+    const seasonCrops = getSeasonCrops();
+    const selectedCrops = state.cropRows.map(row => row.cropName).filter(name => name !== '');
+    const cropRowElements = document.querySelectorAll('.crop-row');
+    
+    const allCropsSelected = selectedCrops.length >= seasonCrops.length;
+    const noMoreRows = state.cropRows.length >= cropRowElements.length;
+    
+    if (allCropsSelected || noMoreRows) {
+        addButton.style.display = 'none';
+    } else {
+        addButton.style.display = 'block';
+    }
+}
+
+// Set up event listeners for a specific crop row
+function setupRowEventListeners(rowElement, rowIndex) {
+    const dropdown = rowElement.querySelector('.crop-select');
+    const seedInput = rowElement.querySelector('.seed-count');
+    
+    dropdown.addEventListener('change', (e) => {
+        state.cropRows[rowIndex].cropName = e.target.value;
+        state.cropRows[rowIndex].seedCount = 0;
+        state.cropRows[rowIndex].cropsSold = 0;
+        state.cropRows[rowIndex].jarred = 0;
+        state.cropRows[rowIndex].wine = 0;
+        state.cropRows[rowIndex].aged = 0;
+        seedInput.value = '';
+        updateCalculationSection(rowElement, rowIndex);
+        updateAddButtonState();
+    });
+    
+    seedInput.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value) || 0;
+        state.cropRows[rowIndex].seedCount = value;
+        updateCalculationSection(rowElement, rowIndex);
+    });
+}
+
+// Update calculation section for a row
+function updateCalculationSection(rowElement, rowIndex) {
+    const stateRow = state.cropRows[rowIndex];
+    const crop = cropsData.find(c => c.Crop === stateRow.cropName && c.Season === getSeasonName());
+    
+    // Remove existing calculation section
+    const existingCalc = rowElement.parentElement.querySelector('.calculation-section');
+    if (existingCalc) {
+        existingCalc.remove();
+    }
+    
+    if (stateRow.cropName && stateRow.seedCount > 0 && crop) {
+        // Calculate total output based on crop type - FIXED LOGIC
+        let totalOutput;
+        if (crop.Type === 'Single') {
+            // Single crop: Each seed gives 1 crop
+            totalOutput = stateRow.seedCount;
+        } else {
+            // Multi crop: PerSzn is how many crops per seed during the season
+            totalOutput = stateRow.seedCount * crop.PerSzn;
+        }
+        
+        // Check which artisan products are available - ENHANCED FILTERING
+        const canJar = crop.Jar !== "" && crop.Jar !== undefined && crop.Jar !== null && crop.Jar !== 0;
+        const canMakeWine = crop.Keg !== "" && crop.Keg !== undefined && crop.Keg !== null && crop.Keg !== 0;
+        const canAgeWine = crop.Aged !== "" && crop.Aged !== undefined && crop.Aged !== null && crop.Aged !== 0;
+        
+        const calcSection = document.createElement('div');
+        calcSection.className = 'calculation-section active';
+        
+        let calcHTML = `
+            <div class="crop-output">
+                <strong>Total Crops Available: ${totalOutput}</strong>
+            </div>
+            <h4 class="form-legend" style="font-size: 18px; margin-bottom: 15px;">Distribution Calculator</h4>
+            <div class="calc-row">
+                <span class="calc-label">Crops Sold:</span>
+                <input type="number" class="calc-input crops-sold" min="0" max="${totalOutput}" value="${stateRow.cropsSold || ''}">
+            </div>`;
+        
+        if (canJar) {
+            calcHTML += `
+            <div class="calc-row">
+                <span class="calc-label">Jarred:</span>
+                <input type="number" class="calc-input jarred" min="0" max="${totalOutput}" value="${stateRow.jarred || ''}">
+            </div>`;
+        }
+        
+        if (canMakeWine) {
+            calcHTML += `
+            <div class="calc-row">
+                <span class="calc-label">Wine/Juice:</span>
+                <input type="number" class="calc-input wine" min="0" max="${totalOutput}" value="${stateRow.wine || ''}">
+            </div>`;
+        }
+        
+        if (canAgeWine) {
+            calcHTML += `
+            <div class="calc-row">
+                <span class="calc-label">Aged Wine:</span>
+                <input type="number" class="calc-input aged" min="0" max="${totalOutput}" value="${stateRow.aged || ''}">
+            </div>`;
+        }
+        
+        calcHTML += `
+            <div class="row-summary" style="margin-top: 15px; padding: 10px; background-color: var(--color-content-background); border-radius: 5px;">
+                <strong class="row-profit">Calculating...</strong>
+            </div>
+        `;
+        
+        calcSection.innerHTML = calcHTML;
+        rowElement.parentElement.appendChild(calcSection);
+        
+        setupCalculationEventListeners(calcSection, rowIndex);
+        calculateRowProfit(rowIndex);
+    }
+}
+
+// Set up event listeners for calculation inputs
+function setupCalculationEventListeners(calcSection, rowIndex) {
+    const inputs = {
+        cropsSold: calcSection.querySelector('.crops-sold'),
+        jarred: calcSection.querySelector('.jarred'),
+        wine: calcSection.querySelector('.wine'),
+        aged: calcSection.querySelector('.aged')
+    };
+    
+    Object.entries(inputs).forEach(([key, input]) => {
+        if (input) {
+            input.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value) || 0;
+                const stateRow = state.cropRows[rowIndex];
+                const crop = cropsData.find(c => c.Crop === stateRow.cropName && c.Season === getSeasonName());
+                
+                if (crop) {
+                    let totalOutput;
+                    if (crop.Type === 'Single') {
+                        totalOutput = stateRow.seedCount;
+                    } else {
+                        totalOutput = stateRow.seedCount * crop.PerSzn;
+                    }
+                    
+                    // Prevent input from exceeding available crops
+                    if (value > totalOutput) {
+                        e.target.value = totalOutput;
+                        state.cropRows[rowIndex][key] = totalOutput;
+                        
+                        const summary = calcSection.querySelector('.row-summary');
+                        summary.innerHTML = `<span style="color: #ff4444;"><strong>Cannot exceed ${totalOutput} crops! Input adjusted.</strong></span>`;
+                        
+                        setTimeout(() => {
+                            calculateRowProfit(rowIndex);
+                        }, 2000);
+                    } else {
+                        state.cropRows[rowIndex][key] = value;
+                        calculateRowProfit(rowIndex);
+                    }
+                } else {
+                    state.cropRows[rowIndex][key] = value;
+                    calculateRowProfit(rowIndex);
+                }
+            });
+        }
+    });
+}
+
+// Calculate profit for a specific row
+function calculateRowProfit(rowIndex) {
+    const stateRow = state.cropRows[rowIndex];
+    const crop = cropsData.find(c => c.Crop === stateRow.cropName && c.Season === getSeasonName());
+    const currentProb = probabilityData.find(p => p['Farming level'] === state.farmingLevel);
+    
+    if (!crop || !currentProb) return;
+    
+    // Calculate total output based on crop type
+    let totalOutput;
+    if (crop.Type === 'Single') {
+        totalOutput = stateRow.seedCount;
+    } else {
+        totalOutput = stateRow.seedCount * crop.PerSzn;
+    }
+    
+    const seedCost = stateRow.seedCount * crop.Seed;
+    const totalUsed = stateRow.cropsSold + stateRow.jarred + stateRow.wine + stateRow.aged;
+    
+    // Calculate probabilities
+    const baseProb = parseFloat(currentProb.Base.replace('%', '')) / 100;
+    const silverProb = parseFloat(currentProb.Silver.replace('%', '')) / 100;
+    const goldProb = parseFloat(currentProb.Gold.replace('%', '')) / 100;
+    
+    // Get prices based on profession
+    const basePrice = state.hasTiller ? crop['Tiller Base'] : crop.Base;
+    const silverPrice = state.hasTiller ? crop['Tiller Silver'] : crop.Silver;
+    const goldPrice = state.hasTiller ? crop['Tiller Gold'] : crop.Gold;
+    
+    // Calculate expected crop sale price
+    const expectedCropPrice = basePrice * baseProb + silverPrice * silverProb + goldPrice * goldProb;
+    
+    // Calculate revenues
+    const soldRevenue = stateRow.cropsSold * expectedCropPrice;
+    
+    let jarRevenue = 0;
+    if (crop.Jar !== "" && crop.Jar !== undefined && crop.Jar !== null && crop.Jar !== 0) {
+        jarRevenue = stateRow.jarred * (state.hasArtisan ? (crop['Artisan Jar'] || 0) : (crop.Jar || 0));
+    }
+    
+    let wineRevenue = 0;
+    if (crop.Keg !== "" && crop.Keg !== undefined && crop.Keg !== null && crop.Keg !== 0) {
+        wineRevenue = stateRow.wine * (state.hasArtisan ? (crop['Artisan Keg'] || 0) : (crop.Keg || 0));
+    }
+    
+    let agedRevenue = 0;
+    if (crop.Aged !== "" && crop.Aged !== undefined && crop.Aged !== null && crop.Aged !== 0) {
+        agedRevenue = stateRow.aged * (state.hasArtisan ? (crop['Artisan Aged'] || 0) : (crop.Aged || 0));
+    }
+    
+    const totalRevenue = soldRevenue + jarRevenue + wineRevenue + agedRevenue;
+    const profit = totalRevenue - seedCost;
+    
+    // Update display - NO GOLD DISPLAYS
+    const calcSection = document.querySelectorAll('.calculation-section')[rowIndex];
+    if (calcSection) {
+        const summary = calcSection.querySelector('.row-summary');
+        if (totalUsed > totalOutput) {
+            summary.innerHTML = `<span style="color: #ff4444;"><strong>Error: You cannot distribute more crops (${totalUsed}) than you have (${totalOutput})!</strong></span>`;
+        } else {
+            summary.innerHTML = `<strong>Row Profit: ${Math.round(profit)}g (Revenue: ${Math.round(totalRevenue)}g - Seeds: ${seedCost}g)</strong>`;
+        }
+    }
+}
+
+// Recalculate all rows
+function recalculateAllRows() {
+    state.cropRows.forEach((_, index) => {
+        calculateRowProfit(index);
+    });
+}
+
+// Get season name in proper format
+function getSeasonName() {
+    const seasonMap = {
+        'spring': 'Spring',
+        'summer': 'Summer',
+        'fall': 'Fall',
+        'winter': 'Winter'
+    };
+    return seasonMap[state.season];
+}
+
+// Calculate and display final results
+function calculateAndDisplayResults() {
+    const validRows = state.cropRows.filter(row => row.cropName && row.seedCount > 0);
+    
+    if (validRows.length === 0) {
+        alert('Please select at least one crop with a seed count.');
+        return;
+    }
+    
+    let totalRevenue = 0;
+    let totalSeedCost = 0;
+    let totalProfit = 0;
+    let resultHTML = '<h2>Calculation Results</h2><h3>Individual Crop Results:</h3><table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;"><thead><tr><th style="border: 1px solid var(--color-body-text); padding: 8px; text-align: left;">Crop</th><th style="border: 1px solid var(--color-body-text); padding: 8px; text-align: left;">Seeds</th><th style="border: 1px solid var(--color-body-text); padding: 8px; text-align: left;">Crop Revenue</th><th style="border: 1px solid var(--color-body-text); padding: 8px; text-align: left;">Seed Cost</th><th style="border: 1px solid var(--color-body-text); padding: 8px; text-align: left;">Profit</th></tr></thead><tbody>';
+    
+    validRows.forEach(row => {
+        const crop = cropsData.find(c => c.Crop === row.cropName && c.Season === getSeasonName());
+        const currentProb = probabilityData.find(p => p['Farming level'] === state.farmingLevel);
+        
+        if (crop && currentProb) {
+            const seedCost = row.seedCount * crop.Seed;
+            
+            // Calculate probabilities and prices
+            const baseProb = parseFloat(currentProb.Base.replace('%', '')) / 100;
+            const silverProb = parseFloat(currentProb.Silver.replace('%', '')) / 100;
+            const goldProb = parseFloat(currentProb.Gold.replace('%', '')) / 100;
+            
+            const basePrice = state.hasTiller ? crop['Tiller Base'] : crop.Base;
+            const silverPrice = state.hasTiller ? crop['Tiller Silver'] : crop.Silver;
+            const goldPrice = state.hasTiller ? crop['Tiller Gold'] : crop.Gold;
+            
+            const expectedCropPrice = basePrice * baseProb + silverPrice * silverProb + goldPrice * goldProb;
+            
+            // Calculate revenues
+            const soldRevenue = row.cropsSold * expectedCropPrice;
+            
+            let jarRevenue = 0;
+            if (crop.Jar !== "" && crop.Jar !== undefined && crop.Jar !== null && crop.Jar !== 0) {
+                jarRevenue = row.jarred * (state.hasArtisan ? (crop['Artisan Jar'] || 0) : (crop.Jar || 0));
+            }
+            
+            let wineRevenue = 0;
+            if (crop.Keg !== "" && crop.Keg !== undefined && crop.Keg !== null && crop.Keg !== 0) {
+                wineRevenue = row.wine * (state.hasArtisan ? (crop['Artisan Keg'] || 0) : (crop.Keg || 0));
+            }
+            
+            let agedRevenue = 0;
+            if (crop.Aged !== "" && crop.Aged !== undefined && crop.Aged !== null && crop.Aged !== 0) {
+                agedRevenue = row.aged * (state.hasArtisan ? (crop['Artisan Aged'] || 0) : (crop.Aged || 0));
+            }
+            
+            const rowRevenue = soldRevenue + jarRevenue + wineRevenue + agedRevenue;
+            const rowProfit = rowRevenue - seedCost;
+            
+            totalRevenue += rowRevenue;
+            totalSeedCost += seedCost;
+            totalProfit += rowProfit;
+            
+            resultHTML += `
+                <tr>
+                    <td style="border: 1px solid var(--color-body-text); padding: 8px;"><strong>${row.cropName}</strong></td>
+                    <td style="border: 1px solid var(--color-body-text); padding: 8px;">${row.seedCount}</td>
+                    <td style="border: 1px solid var(--color-body-text); padding: 8px;">${Math.round(rowRevenue)}g</td>
+                    <td style="border: 1px solid var(--color-body-text); padding: 8px;">${seedCost}g</td>
+                    <td style="border: 1px solid var(--color-body-text); padding: 8px; color: ${rowProfit > 0 ? 'var(--color-link)' : '#ff4444'};">${Math.round(rowProfit)}g</td>
+                </tr>
+            `;
+        }
+    });
+    
+    resultHTML += `
+        </tbody></table>
+        <div style="margin-top: 20px; padding: 15px; background-color: var(--color-title); color: var(--color-content-background); border-radius: 8px;">
+            <h4 style="color: var(--color-content-background);">TOTAL SUMMARY</h4>
+            <p><strong>Total Revenue: ${Math.round(totalRevenue)}g</strong></p>
+            <p><strong>Total Seed Cost: ${Math.round(totalSeedCost)}g</strong></p>
+            <p><strong>NET PROFIT: ${Math.round(totalProfit)}g</strong></p>
+        </div>
+    `;
+    
+    let resultDiv = document.querySelector('.result-section');
+    if (!resultDiv) {
+        resultDiv = document.createElement('div');
+        resultDiv.className = 'result-section';
+        document.querySelector('.container').appendChild(resultDiv);
+    }
+    
+    resultDiv.innerHTML = resultHTML;
+    resultDiv.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Reset form to initial state
+function resetForm() {
+    state = {
+        farmingLevel: 1,
+        season: 'spring',
+        hasTiller: false,
+        hasArtisan: false,
+        cropRows: [{ id: 1, cropName: '', seedCount: 0, cropsSold: 0, jarred: 0, wine: 0, aged: 0 }]
+    };
+    
+    document.getElementById('lvl').value = 1;
+    document.getElementById('lvl').nextElementSibling.textContent = 1;
+    document.getElementById('spring').checked = true;
+    document.getElementById('tiller').checked = false;
+    document.querySelector('input[name="artisan"]').checked = false;
+    
+    document.querySelectorAll('.crop-select').forEach(select => select.value = '');
+    document.querySelectorAll('.seed-count').forEach(input => input.value = '');
+    document.querySelectorAll('.calculation-section').forEach(section => section.remove());
+    
+    const resultSection = document.querySelector('.result-section');
+    if (resultSection) {
+        resultSection.remove();
+    }
+    
+    updateProbabilityDisplay();
+    updateSeasonCrops();
+    renderCropRows();
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing calculator...');
+    loadData().then(() => {
+        renderCropRows();
+    });
+});
+    </script>
+</body>
+</html>

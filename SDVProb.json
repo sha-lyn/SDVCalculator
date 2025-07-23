@@ -1,0 +1,92 @@
+[
+  {
+    "Farming level": 0,
+    "Base": "97%",
+    "Silver": "2%",
+    "Gold": "1%"
+  },
+  {
+    "Farming level": 1,
+    "Base": "91%",
+    "Silver": "6%",
+    "Gold": "3%"
+  },
+  {
+    "Farming level": 2,
+    "Base": "85%",
+    "Silver": "10%",
+    "Gold": "5%"
+  },
+  {
+    "Farming level": 3,
+    "Base": "80%",
+    "Silver": "13%",
+    "Gold": "7%"
+  },
+  {
+    "Farming level": 4,
+    "Base": "75%",
+    "Silver": "16%",
+    "Gold": "9%"
+  },
+  {
+    "Farming level": 5,
+    "Base": "69%",
+    "Silver": "20%",
+    "Gold": "11%"
+  },
+  {
+    "Farming level": 6,
+    "Base": "64%",
+    "Silver": "23%",
+    "Gold": "13%"
+  },
+  {
+    "Farming level": 7,
+    "Base": "60%",
+    "Silver": "25%",
+    "Gold": "15%"
+  },
+  {
+    "Farming level": 8,
+    "Base": "55%",
+    "Silver": "28%",
+    "Gold": "17%"
+  },
+  {
+    "Farming level": 9,
+    "Base": "50%",
+    "Silver": "31%",
+    "Gold": "19%"
+  },
+  {
+    "Farming level": 10,
+    "Base": "46%",
+    "Silver": "33%",
+    "Gold": "21%"
+  },
+  {
+    "Farming level": 11,
+    "Base": "42%",
+    "Silver": "35%",
+    "Gold": "23%"
+  },
+  {
+    "Farming level": 12,
+    "Base": "38%",
+    "Silver": "37%",
+    "Gold": "25%"
+  },
+  {
+    "Farming level": 13,
+    "Base": "34%",
+    "Silver": "39%",
+    "Gold": "27%"
+  },
+  {
+    "Farming level": 14,
+    "Base": "30%",
+    "Silver": "41%",
+    "Gold": "29%"
+  }
+]

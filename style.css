@@ -1,0 +1,299 @@
+:root {
+    color-scheme: light dark;
+
+    --color-body-background: light-dark(hsl(119, 19.4%, 75%), hsl(119, 19.4%, 15%));
+    --color-content-background: light-dark(hsl(299, 19.4%, 90%), hsl(299, 19.4%, 15%));
+    --color-body-text: light-dark(hsl(348, 100%, 10%), hsl(252, 25%, 85%));
+    --color-title: hsl(299, 19.4%, 52%);
+    --color-heading: light-dark(hsl(299, 19.4%, 42%), hsl(299, 19.4%, 80%));
+    --color-link: light-dark(hsl(119, 19.4%, 40%), hsl(119, 19.4%, 70%));
+
+    --font-family-main: 'Atkinson Hyperlegible', 'Helvetica', sans-serif;
+    --font-family-headings: 'Georgia', 'Times New Roman', serif;
+
+    --content-max-width: 800px;
+    --border-main: 3px solid var(--color-body-text);
+    --border-radius-main: 10px;
+    --shadow-main: 2px 2px 4px rgba(54,69,79,0.4);
+}
+
+/* General styling */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+}
+
+body {
+    min-height: 100vh;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-main);
+    color: var(--color-body-text);
+    background-color: var(--color-body-background);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-headings);
+    color: var(--color-heading);
+}
+
+a {
+    color: var(--color-link);
+}
+
+input, textarea, select {
+    max-width: var(--content-max-width);
+    border: 0.12em solid var(--color-body-text);
+    background-color: var(--color-content-background);
+    font: inherit;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+:focus {
+    outline: 0.15em solid var(--color-link);
+}
+
+/* Project Buttons (div class="projects") */
+
+.projects {
+    background-color: var(--color-body-background);
+    padding: 8px 15px;
+    border: var(--border-main);
+    border-radius: var(--border-radius-main);
+
+}
+
+.projects h5, .projects a {
+    text-align: center;
+    max-width: 100%;
+    color: hsl(299, 19.4%, 42.4%);
+    text-decoration: none;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+/* Inner Boxes (div class="inner__boxbox") */
+
+.inner__box {
+    font-size-adjust: inherit;
+    padding: 8px 15px;
+    border: var(--border-main);
+    border-radius: var(--border-radius-main);
+}
+
+/* Layout container */
+.container {
+    width: 95%;
+    max-width: var(--content-max-width);
+    margin: 20px auto;
+    display: grid;
+    gap: 1em;
+}
+
+/* Header */
+.header {
+    text-align: center;
+}
+
+.header__img {
+    height: 8em;
+}
+
+.header__title {
+    font-size: 4em;
+    color: var(--color-title);
+    text-shadow: var(--shadow-main);
+}
+
+/* Navigation bar */
+.navbar {
+    display: grid;
+    place-content: center;
+}
+
+.navbar__links {
+    list-style-type: "";
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7em;
+}
+
+.navbar__links a {
+    background-color: var(--color-content-background);
+    color: var(--color-title);
+    text-decoration: none;
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 8px 15px;
+    border: var(--border-main);
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--shadow-main);
+}
+
+.navbar__links li a:focus {
+    outline-offset: 0.2em;
+}
+
+
+/* Main content */
+main {
+    background-color: var(--color-content-background);
+    font-size: 1.2em;
+    margin: 20px 0;
+    padding: 20px;
+    border: var(--border-main);
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--shadow-main);
+}
+
+.main__title {
+    border-bottom: var(--border-main);
+    font-size: 2.5em;
+}
+
+.section__header {
+    border-bottom: var(--border-main);
+    font-size: 2.5em;
+}
+
+main * + * {
+    margin-block-start: 1em;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    background-color: var(--color-content-background);
+    padding: 20px 25px 35px;
+    border: var(--border-main);
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--shadow-main);
+}
+footer * + * {
+    margin-block-start: 0.5em;
+}
+
+footer p {
+  font-size: 20px;
+}
+
+/* Skip to content button */
+/* See: https://kalechips.net/projects/snippets/skip */
+.skip-btn a {
+    position: absolute;
+    display: inline-block;
+    left: 50%;
+    transform: translate(-50%, 0);
+    top: -1000px;
+    overflow: hidden;
+    transition: top 0.5s ease;
+    background: var(--color-content-background);
+    font-size: 1.25rem;
+    font-weight: 700;
+    z-index: 1000;
+    padding: 5px 10px;
+}
+
+.skip-btn a:focus {
+    top: 0;
+    transition: top 0.3s ease;
+}
+
+/* Stardew Valley Crop Calculator sdvcalc.html */
+
+#crop-form legend, #crop-form fieldset {
+    background-color: var(--color-content-background);
+    border: 2px solid var(--color-body-text);
+    border-radius: var(--border-radius-main);
+    padding: 10px;
+}
+
+#crop-form legend {
+  font-weight: bold;
+}
+
+#crop-form label, .crop-row {
+  color: var(--color-body-text);
+  font-size: 15px;
+  font-weight: normal;
+  font-family: var(--font-family-main);
+}
+
+
+/* Letter Formatting */
+
+#sdvcalc-title {
+    color: var(--color-title);;
+    background-color: var(--color-content-background);
+    padding: 8px 15px;
+    margin: 5px 5px;
+    border: 2px solid var(--color-body-text);
+    border-radius: var(--border-radius-main);
+    font-size: 40px;
+    text-align: center;
+}
+
+#sdv-legend {
+    font-size: 25px;
+    font-family: var(--font-family-headings);
+    color: var(--color-heading);
+ }
+ 
+ #disclaimer {
+    color: var(--color-body-text);
+    background-color: var(--color-content-background);
+    font-size: 15px;
+    padding: 5px 10px;
+    border: 2px solid var(--color-body-text);
+    border-radius: var(--border-radius-main);
+ }
+ 
+/* Accent Color */
+
+#lvl, input[type='radio'], input[type='checkbox'], .crop-row {
+  accent-color: var(--color-title);
+}
+ 
+/* Range Slider (Farming Skill Lvl) */
+
+#lvl {
+  width: 100%;
+  height: 25px;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+#lvl::hover {
+  opacity: 1;
+}
+
+
+/* Season Radio Buttons */
+
+.radio-align {
+  display: flex;
+  flex-direction: row;
+}
+
+.radio-align input {
+  margin-top: 15px;
+}
+
+.radio-align label {
+  width: 100%;
+  padding: 12px;
+}
+
+#crop-form button {
+  
+}
+
+
