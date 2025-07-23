@@ -107,8 +107,8 @@ let state = {
 async function loadData() {
     try {
         const [cropsResponse, probabilityResponse] = await Promise.all([
-            fetch('./attached_assets/SDVCrops.json'),
-            fetch('./attached_assets/SDVProb.json')
+            fetch('SDVCrops.json'),
+            fetch('SDVProb.json')
         ]);
         
         cropsData = await cropsResponse.json();
