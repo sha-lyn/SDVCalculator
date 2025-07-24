@@ -296,6 +296,25 @@ footer p {
   
 }
 
+/* Season Radio Buttons Stacked */
+
+.season-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    margin-top: 0.5em;
+}
+
+.season-options label {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-family: var(--font-family-main);
+    font-size: 1rem;
+}
+
+
+
 /* No Javascript Warning */
 .no-js-warning {
     background-color: var(--color-title);
