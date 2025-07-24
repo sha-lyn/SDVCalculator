@@ -403,9 +403,9 @@ function setupCalcInputs(calcSection, idx) {
         const r = state.cropRows[idx];
         const c = cropsData.find(x => x.Crop === r.cropName && x.Season === getSeasonName());
         return c
-            ? (c.Type === 'Multi' ? && typeof c.PerSzn === 'number'
+            ? (c.Type === 'Multi' && typeof c.PerSzn === 'number'
                 ? r.seedCount * c.PerSzn
-                : r.seedcount)
+                : r.seedCount)
             : 0;
     })();
 

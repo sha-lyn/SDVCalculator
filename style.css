@@ -293,7 +293,15 @@ footer p {
 }
 
 #crop-form button {
-  
+    background-color: var(--color-content-background);
+    color: var(--color-title);
+    text-decoration: none;
+    font-size: 0.75em;
+    font-weight: bold;
+    padding: 8px 15px;
+    border: var(--border-main);
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--shadow-main);
 }
 
 /* Season Radio Buttons Stacked */
