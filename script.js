@@ -420,10 +420,12 @@ function handleDistribution() {
     state.distributionVisible = true;
 
     const panel = document.querySelector('.distribution-panel');
-    panel.innerHTML = `
-        <div class="distribution-wrapper" style="border: 2px solid var(--color-body-text); padding: 20px; border-radius: var(--border-radius-main); margin-top: 2em;">
-            <h1>Distribute Your Crops</h1>
-        </div>
+panel.innerHTML = `
+    <div class="distribution-wrapper">
+        <h1>Distribute Your Crops</h1>
+    </div>
+`;
+
     `;
 
     const wrapper = panel.querySelector('.distribution-wrapper');
