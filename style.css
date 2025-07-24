@@ -293,16 +293,33 @@ footer p {
   padding: 12px;
 }
 
-#crop-form button {
+/* Crop Form Buttons*/
+.form-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em; /* space between buttons */
+    margin-top: 1em;
+    align-items: flex-start; /* optional: aligns buttons to the left */
+}
+
+.form-buttons button {
     background-color: var(--color-content-background);
     color: var(--color-title);
     text-decoration: none;
-    font-size: 1.5em;
+    font-size: 2em; 
     font-weight: bold;
     padding: 8px 15px;
     border: var(--border-main);
     border-radius: var(--border-radius-main);
     box-shadow: var(--shadow-main);
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.form-buttons button:hover {
+    background-color: var(--color-title);
+    color: var(--color-content-background);
+    transform: translateY(-2px);
 }
 
 /* Season Radio Buttons Stacked */
