@@ -105,15 +105,14 @@ function isValidArtisanValue(val) {
 let cropsData = [];
 let probabilityData = [];
 
-// Application state
+// track whether distribution UI is active
 let state = {
-    farmingLevel: 1,
-    season: 'spring',
-    hasTiller: false,
-    hasArtisan: false,
-    cropRows: [
-        { id: 1, cropName: '', seedCount: 0, cropsSold: 0, jarred: 0, kegged: 0, aged: 0 }
-    ]
+  farmingLevel: 1,
+  season: 'spring',
+  hasTiller: false,
+  hasArtisan: false,
+  distributionVisible: false,    // ← NEW
+  cropRows: [ { id:1, cropName:'', seedCount:0, cropsSold:0, jarred:0, kegged:0, aged:0 } ]
 };
 
 // Fetch JSON and kick things off
@@ -181,11 +180,31 @@ function setupEventListeners() {
     });
 
     // Reset
-    document.querySelector('button[type="reset"]')?.addEventListener('click', e => {
-        e.preventDefault();
-        resetForm();
-    });
+    function resetForm() {
+    state = {
+        farmingLevel: 1,
+        season: 'spring',
+        hasTiller: false,
+        hasArtisan: false,
+        distributionVisible: false,
+        cropRows: [{ id: 1, cropName: '', seedCount: 0, cropsSold: 0, jarred: 0, kegged: 0, aged: 0 }]
+    };
+    document.getElementById('lvl').value = state.farmingLevel;
+    const lvlOutput = document.getElementById('lvl')?.nextElementSibling;
+    if (lvlOutput) lvlOutput.textContent = state.farmingLevel;
+    document.getElementById('spring').checked = true;
+    document.getElementById('tiller').checked = false;
+    document.querySelector('input[name="artisan"]').checked = false;
+    document.getElementById('show-distribution').style.display = 'inline-block';
+    document.getElementById('final-calculate').disabled = true;
+    updateProbabilityDisplay();
+    updateSeasonCrops();
+    renderCropRows();
+}
 
+document.querySelector('button[type="reset"]').addEventListener('click', resetForm);
+    
+    
     // Distribute button
     document.getElementById('show-distribution')?.addEventListener('click', handleDistribution);
 
@@ -331,9 +350,9 @@ function setupRowEventListeners(rowEl, idx) {
 
 // Injects the “distribution” UI for a row
 function updateCalculationSection(rowEl, idx) {
-    // Remove old section
     const old = rowEl.parentElement.querySelector('.calculation-section');
     if (old) old.remove();
+    if (!state.distributionVisible) return;
 
     const r = state.cropRows[idx];
     if (!r.cropName || r.seedCount <= 0) return;
@@ -458,15 +477,17 @@ function recalculateAllRows() {
 }
 
 // Handles the “Distribute Crops” button
-function handleDistribution() {
-    // Simply re-render each calculation section
-    document.querySelectorAll('.crop-row').forEach((rowEl, idx) => {
-        updateCalculationSection(rowEl, idx);
-        setupCalcInputs(rowEl.parentElement.querySelector('.calculation-section'), idx);
-        calculateRowProfit(idx);
-    });
-    document.getElementById('final-calculate').disabled = false;
-    document.getElementById('show-distribution').style.display = 'none';
+    
+    function handleDistribution() {
+  state.distributionVisible = true;
+ document.querySelectorAll('.crop-row').forEach((rowEl, idx) => {
+    updateCalculationSection(rowEl, idx);
+    setupCalcInputs(rowEl.parentElement.querySelector('.calculation-section'), idx);
+    calculateRowProfit(idx);
+  });
+
+  document.getElementById('final-calculate').disabled = false;
+  document.getElementById('show-distribution').style.display = 'none';
 }
 
 // Attaches input listeners inside each calculation section
