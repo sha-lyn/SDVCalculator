@@ -31,6 +31,38 @@ function formatCurrency(value) {
     return `${Math.floor(value).toLocaleString()}g`;
 }
 
+
+/**
+ * Renders the "Distribute Your X" inputs into the #distribute-container
+ * @param {string} cropName — the name of the crop to distribute
+ */
+function renderDistributeUI(cropName) {
+  const container = document.getElementById('distribute-container');
+  if (!container) return;
+
+  // If there's no cropName (e.g. at startup), clear it
+  if (!cropName) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="distribute-popup">
+      <h4>Distribute your ${cropName} among...</h4>
+      <label>
+        North Field:
+        <input type="number" id="northDist" min="0" value="0">
+      </label>
+      <label>
+        South Field:
+        <input type="number" id="southDist" min="0" value="0">
+      </label>
+      <!-- add more zones as needed -->
+    </div>
+  `;
+}
+
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     loadData();
@@ -250,6 +282,10 @@ function renderCropRows() {
         addButton.innerHTML = '<i class="fas fa-plus"></i> Add Another Crop';
         addButton.addEventListener('click', addCropRow);
         container.appendChild(addButton);
+
+        const distributeContainer = document.createElement('div');
+        distributeContainer.id = 'distribute-container';
+        container.appendChild(distributeContainer);
     }
 }
 
