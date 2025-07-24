@@ -101,7 +101,9 @@ input, textarea, select {
 }
 
 .header__img {
-    height: 8em;
+    height: auto;
+    width: 100px;
+    display: block;
 }
 
 .header__title {
