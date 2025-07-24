@@ -624,54 +624,78 @@ function calculateAndDisplayResults() {
 
 // Display final results
 function displayResults(results) {
-    const resultsSection = document.querySelector('.result-section');
-    if (!resultsSection) return;
-    
-    resultsSection.innerHTML = `
-        <div class="result-header">
-            <h2><i class="fas fa-chart-line"></i> Profit Calculation Results</h2>
-        </div>
-        
-        <div class="result-summary">
-            <div class="summary-item"><strong>Total Profit: ${formatCurrency(results.totalProfit)}</strong></div>
-            <div class="summary-item">Seed Cost: ${formatCurrency(results.totalSeedCost)}</div>
-            <div class="summary-item">Revenue: ${formatCurrency(results.totalRevenue)}</div>
-        </div>
-        
-        <div class="result-table">
-            <h3>Crop Breakdown Chart</h3>
-            <table class="crop-table">
-                <thead>
-                    <tr>
-                        <th>Crop</th>
-                        <th>Seed Cost</th>
-                        <th>Revenue</th>
-                        <th>Profit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${results.cropBreakdowns.map(crop => `
-                        <tr>
-                            <td>${crop.cropName}</td>
-                            <td>${formatCurrency(crop.seedCost)}</td>
-                            <td>${formatCurrency(crop.revenue)}</td>
-                            <td>${formatCurrency(crop.profit)}</td>
-                        </tr>
-                    `).join('')}
-                    <tr class="subtotal-row">
-                        <td><strong>Subtotals</strong></td>
-                        <td><strong>${formatCurrency(results.totalSeedCost)}</strong></td>
-                        <td><strong>${formatCurrency(results.totalRevenue)}</strong></td>
-                        <td><strong>${formatCurrency(results.totalProfit)}</strong></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    `;
-    
-    resultsSection.classList.remove('hidden');
-    resultsSection.scrollIntoView({ behavior: 'smooth' });
+  const resultsSection = document.querySelector('.result-section');
+  if (!resultsSection) return;
+
+  // 1) Build your HTML (header, summary, table, and chart wrapper)
+  resultsSection.innerHTML = `
+    <div class="result-header">
+      <h2><i class="fas fa-chart-line"></i> Profit Calculation Results</h2>
+    </div>
+
+    <div class="result-summary">
+      <div class="summary-item"><strong>Total Profit: ${formatCurrency(results.totalProfit)}</strong></div>
+      <div class="summary-item">Seed Cost: ${formatCurrency(results.totalSeedCost)}</div>
+      <div class="summary-item">Revenue: ${formatCurrency(results.totalRevenue)}</div>
+    </div>
+
+    <div class="result-chart">
+      <h3>Crop Breakdown Chart</h3>
+      <div class="chart-wrapper">
+        <canvas id="resultsChart"></canvas>
+      </div>
+    </div>
+
+    <div class="result-table">
+      <h3>Crop Breakdown Data</h3>
+      <div class="table-wrapper">
+        <table class="crop-table">
+          <thead>
+            <tr>
+              <th>Crop</th>
+              <th>Seed Cost</th>
+              <th>Revenue</th>
+              <th>Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${results.cropBreakdowns.map(crop => `
+              <tr>
+                <td>${crop.cropName}</td>
+                <td>${formatCurrency(crop.seedCost)}</td>
+                <td>${formatCurrency(crop.revenue)}</td>
+                <td>${formatCurrency(crop.profit)}</td>
+              </tr>
+            `).join('')}
+            <tr class="subtotal-row">
+              <td><strong>Subtotals</strong></td>
+              <td><strong>${formatCurrency(results.totalSeedCost)}</strong></td>
+              <td><strong>${formatCurrency(results.totalRevenue)}</strong></td>
+              <td><strong>${formatCurrency(results.totalProfit)}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // 2) Un-hide & scroll
+  resultsSection.classList.remove('hidden');
+  resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+  // 3) Now that the canvas is in the DOM, grab it and init Chart.js
+  const ctx = document.getElementById('resultsChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',       // or whatever chart type you need
+    data: chartData,   // your existing data object
+    options: {
+      responsive: true,         // redraws on container resize
+      maintainAspectRatio: false, // lets CSS control width/height
+      // ...any other Chart.js options you already have...
+    }
+  });
 }
+
 
 // Recalculate all rows when global settings change
 function recalculateAllRows() {

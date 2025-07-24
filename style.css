@@ -909,3 +909,39 @@ button:focus {
     left: 100%;
 }
 
+/* ==== Mobile Styles ==== */
+@media (max-width: 600px) {
+  /* Slim down those huge paddings */
+  .crop-form,
+  .form-section,
+  .result-section {
+    padding: var(--spacing-md);
+  }
+
+  /* Let crop‐rows stack vertically instead of busting out */
+  .crop-container .crop-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+
+  /* Make selects & inputs fill their row */
+  .crop-row .crop-select,
+  .crop-row .seed-count {
+    width: 100%;
+  }
+
+  /* Overflow wrapper for any tables or charts */
+  /* (wrap your <table> or chart div in a div.table-wrapper) */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-wrapper table {
+    width: 100%;
+    min-width: 480px; /* or whatever your ideal minimum is */
+    border-collapse: collapse;
+  }
+}
+
