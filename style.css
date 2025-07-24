@@ -909,10 +909,3 @@ button:focus {
     left: 100%;
 }
 
-/* Table Wrapper */
-.table-wrapper {
-  overflow-x: auto;
-  width: 100%;
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-sm);
-}
