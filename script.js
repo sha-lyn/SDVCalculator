@@ -628,18 +628,19 @@ function displayResults(results) {
     if (!resultsSection) return;
     
     resultsSection.innerHTML = `
-        <div class="result-header">
-            <h2><i class="fas fa-chart-line"></i> Profit Calculation Results</h2>
-        </div>
-        
-        <div class="result-summary">
-            <div class="summary-item"><strong>Total Profit: ${formatCurrency(results.totalProfit)}</strong></div>
-            <div class="summary-item">Seed Cost: ${formatCurrency(results.totalSeedCost)}</div>
-            <div class="summary-item">Revenue: ${formatCurrency(results.totalRevenue)}</div>
-        </div>
-        
-        <div class="result-table">
-            <h3>Crop Breakdown Chart</h3>
+    <div class="result-header">
+        <h2><i class="fas fa-chart-line"></i> Profit Calculation Results</h2>
+    </div>
+    
+    <div class="result-summary">
+        <div class="summary-item"><strong>Total Profit: ${formatCurrency(results.totalProfit)}</strong></div>
+        <div class="summary-item">Seed Cost: ${formatCurrency(results.totalSeedCost)}</div>
+        <div class="summary-item">Revenue: ${formatCurrency(results.totalRevenue)}</div>
+    </div>
+    
+    <div class="result-table">
+        <h3>Crop Breakdown Chart</h3>
+        <div class="table-wrapper" role="region" aria-label="Crop profit breakdown table">
             <table class="crop-table">
                 <thead>
                     <tr>
@@ -667,11 +668,9 @@ function displayResults(results) {
                 </tbody>
             </table>
         </div>
-    `;
-    
-    resultsSection.classList.remove('hidden');
-    resultsSection.scrollIntoView({ behavior: 'smooth' });
-}
+    </div>
+`;
+
 
 // Recalculate all rows when global settings change
 function recalculateAllRows() {
