@@ -3,18 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Stardew Valley Crop Calculator">
+    <meta name="description" content="Stardew Valley Crop Calculator - Calculate optimal crop profits with distribution options">
     <title>Stardew Valley Crop Calculator</title>
-    <link rel="icon" type="image/x-icon" href="./img/favicon.ico">
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* Add cache-busting styles to ensure fresh rendering */
-.calc-result { display: none !important; }
-.crops-sold-result,
-.jarred-result,
-.kegged-result,
-.aged-result { display: none !important; }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <noscript>
@@ -22,80 +14,131 @@
             This calculator requires JavaScript. Please enable JavaScript in your browser settings to use it.
         </div>
     </noscript>
-  <div class="skip-btn"><a href="#content">Skip to content</a></div>
-        <div class="container">
-            <header class="header">
-                <h1 id="sdvcalc-title">Stardew Valley Crop Calculator</h1>
-            </header>
-            <nav class="navbar">
-                <ul class="navbar__links">
-                    <li><a href="./index.html">Home</a></li>
-                </ul>
-            </nav>
-            
-    <p id="disclaimer"><b>Disclaimer: </b>[Currently Still a Work in Progress] This calculator also only provides estimates based on Stardew Valley's 1.6 update game data. Actual results may vary depending on various in-game factors.</p>
-    <br>
-        <form id="crop-form">
-            <fieldset>
-                <legend id="sdv-legend">What is your Farming skill level?</legend>
-                <input type="range" id="lvl" name="lvl" min="0" max="14" value="1" oninput="this.nextElementSibling.value = this.value">
-                <output>1</output>
-            </fieldset>
-            <br>
-            
-            <fieldset>
-                <legend id="sdv-legend">What season are you choosing crops from?</legend>
-                <div class="season-options">
-                    <label for="spring"><input type="radio" name="season" id="spring" value="spring" checked>Spring</label>
-                    <label for="summer"><input type="radio" name="season" value="summer" id="summer"/>Summer</label>
-                    <label for="fall"><input type="radio" name="season" value="fall" id="fall"/>Fall</label> 
-                    <label for="winter"><input type="radio" name="season" value="winter" id="winter"/>Winter</label> 
-                </div>
-            </fieldset>
-            <br>
-            
-            <fieldset>
-                <legend id="sdv-legend">Do you have either of these Professions?</legend>
-                <label><input type="checkbox" name="tiller" id="tiller" value="tiller"> Tiller (+10% to crop value)</label>
-                <br>
-                <label><input type="checkbox" name="artisan" id="artisan" value="artisan"> Artisan (+40% to artisan goods)</label>
-            </fieldset>
-            <br>
-
-            <fieldset>
-                <legend id="sdv-legend">Choose your crop and type in the seed count you will be using.</legend>
-                <div class="crop-row">
-                    <select class="crop-select" name="crop-select" id="crop-select-1" value="crop-select-1" required>
-                        <option value="">— pick a crop —</option>
-                    </select>
-                    <input class="seed-count" type="number" name="seed-count" id="seed-count-1" placeholder="Seeds" min="1" required>
-                </div>
-                <br>
-
-                <div class="crop-row" style="display: none;">
-                    <select class="crop-select" name="crop-select" id="crop-select-2" value="crop-select-2">
-                        <option value="">— pick a crop —</option>
-                    </select>
-                    <input class="seed-count" type="number" name="seed-count" id="seed-count-2" placeholder="Seeds" min="1">
-                </div>
-            </fieldset>
-
-<button type="button" id="add-crop-button" onclick="addCropRow()">Add Another Crop</button>
-
-<div class="distribution-panel"></div>
-
-
-<div class="form-buttons"></div>
-    <button type="button" id="show-distribution">Distribute Crops</button>
-    <button type="reset">Clear Form</button>
-    <button type="submit" id="final-calculate" disabled>Calculate</button>
-</div>
     
-        </form>
-
-        <div class="result-section" aria-live="polite" style="margin-top:5rem;"></div>
+    <div class="skip-btn">
+        <a href="#content">Skip to content</a>
     </div>
-
-<script src="script.js" defer></script>
+    
+    <div class="container">
+        <header class="header">
+            <h1 id="sdvcalc-title">
+                <i class="fas fa-seedling"></i>
+                Stardew Valley Crop Calculator
+            </h1>
+        </header>
+        
+        <nav class="navbar">
+            <ul class="navbar__links">
+                <li><a href="#" class="active">Home</a></li>
+            </ul>
+        </nav>
+        
+        <main id="content">
+            <div id="disclaimer" class="disclaimer">
+                <strong>Disclaimer:</strong> This calculator provides estimates based on Stardew Valley's 1.6 update game data. 
+                Actual results may vary depending on various in-game factors.
+            </div>
+            
+            <form id="crop-form" class="crop-form">
+                <!-- Farming Level Section -->
+                <fieldset class="form-section">
+                    <legend>What is your Farming skill level?</legend>
+                    <div class="level-control">
+                        <input type="range" id="lvl" name="lvl" min="0" max="14" value="1" 
+                               oninput="this.nextElementSibling.value = this.value">
+                        <output>1</output>
+                    </div>
+                    <div class="probability-display-container"></div>
+                </fieldset>
+                
+                <!-- Season Selection -->
+                <fieldset class="form-section">
+                    <legend>What season are you choosing crops from?</legend>
+                    <div class="season-options">
+                        <label class="season-label">
+                            <input type="radio" name="season" id="spring" value="spring" checked>
+                            <span class="season-name">
+                                <i class="fas fa-leaf"></i>
+                                Spring
+                            </span>
+                        </label>
+                        <label class="season-label">
+                            <input type="radio" name="season" value="summer" id="summer">
+                            <span class="season-name">
+                                <i class="fas fa-sun"></i>
+                                Summer
+                            </span>
+                        </label>
+                        <label class="season-label">
+                            <input type="radio" name="season" value="fall" id="fall">
+                            <span class="season-name">
+                                <i class="fas fa-tree"></i>
+                                Fall
+                            </span>
+                        </label>
+                        <label class="season-label">
+                            <input type="radio" name="season" value="winter" id="winter">
+                            <span class="season-name">
+                                <i class="fas fa-snowflake"></i>
+                                Winter
+                            </span>
+                        </label>
+                    </div>
+                </fieldset>
+                
+                <!-- Professions -->
+                <fieldset class="form-section">
+                    <legend>Do you have either of these Professions?</legend>
+                    <div class="profession-options">
+                        <label class="profession-label">
+                            <input type="checkbox" name="tiller" id="tiller" value="tiller">
+                            <span class="profession-info">
+                                <strong>Tiller</strong>
+                                <small>+10% to crop value</small>
+                            </span>
+                        </label>
+                        <label class="profession-label">
+                            <input type="checkbox" name="artisan" id="artisan" value="artisan">
+                            <span class="profession-info">
+                                <strong>Artisan</strong>
+                                <small>+40% to artisan goods</small>
+                            </span>
+                        </label>
+                    </div>
+                </fieldset>
+                
+                <!-- Crop Selection -->
+                <fieldset class="form-section">
+                    <legend>Choose your crops and seed counts</legend>
+                    <div class="crop-container">
+                        <!-- Crop rows will be dynamically generated here -->
+                    </div>
+                </fieldset>
+                
+                <!-- Control Buttons -->
+                <div class="form-buttons">
+                    <button type="button" id="show-distribution" class="btn btn-primary">
+                        <i class="fas fa-chart-pie"></i>
+                        Distribute Crops
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i>
+                        Clear Form
+                    </button>
+                    <button type="submit" id="final-calculate" class="btn btn-success" disabled>
+                        <i class="fas fa-calculator"></i>
+                        Calculate
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Results Section -->
+            <div class="result-section" id="results" aria-live="polite">
+                <!-- Results will be displayed here -->
+            </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
 </body>
 </html>
