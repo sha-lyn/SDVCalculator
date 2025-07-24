@@ -296,4 +296,17 @@ footer p {
   
 }
 
-
+/* No Javascript Warning */
+.no-js-warning {
+    background-color: var(--color-title);
+    color: var(--color-body-text);
+    padding: 1.25em;
+    border: 2px solid var(--color-heading);
+    font-family: var(--font-family-main);
+    font-weight: bold;
+    text-align: center;
+    margin: 2rem auto;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
