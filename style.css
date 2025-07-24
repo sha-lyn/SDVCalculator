@@ -129,7 +129,7 @@ input, textarea, select {
     background-color: var(--color-content-background);
     color: var(--color-title);
     text-decoration: none;
-    font-size: 1.5em;
+    font-size: 2em;
     font-weight: bold;
     padding: 8px 15px;
     border: var(--border-main);
@@ -297,7 +297,7 @@ footer p {
     background-color: var(--color-content-background);
     color: var(--color-title);
     text-decoration: none;
-    font-size: 0.75em;
+    font-size: 1.5em;
     font-weight: bold;
     padding: 8px 15px;
     border: var(--border-main);
