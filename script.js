@@ -175,24 +175,51 @@ function clearCropSelections() {
 
 // Renders each row in the DOM or hides extras
 function renderCropRows() {
-    const rows = document.querySelectorAll('.crop-row');
-    rows.forEach((rowEl, i) => {
-        if (i < state.cropRows.length) {
-            const r = state.cropRows[i];
-            const sel = rowEl.querySelector('.crop-select');
-            const inp = rowEl.querySelector('.seed-count');
+    const container = document.querySelector('.crop-container');
+    container.innerHTML = '';
 
-            rowEl.style.display = 'block';
-            sel.value = r.cropName;
-            inp.value = r.seedCount || '';
+    const seasonCropNames = getSeasonCrops().map(c => c.Crop);
+    const chosen = state.cropRows.map(r => r.cropName).filter(Boolean);
 
-            setupRowEventListeners(rowEl, i);
-            updateCalculationSection(rowEl, i);
-        } else {
-            rowEl.style.display = 'none';
-        }
+    state.cropRows.forEach((r, i) => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'crop-row';
+        rowEl.innerHTML = `
+            <select class="crop-select">
+                <option value="">— pick a crop —</option>
+                ${seasonCropNames.map(name => `
+                    <option value="${name}" ${r.cropName === name ? 'selected' : ''}>${name}</option>
+                `).join('')}
+            </select>
+            <input type="number" class="seed-count" min="0" value="${r.seedCount}" />
+        `;
+        container.appendChild(rowEl);
+
+        setupRowEventListeners(rowEl, i);
+        updateCalculationSection(rowEl, i);
     });
-    updateAddButtonState();
+
+    // Re-enable Add button if we haven't added all seasonal crops
+    const addButton = document.createElement('button');
+    addButton.id = 'add-crop-button';
+    addButton.textContent = 'Add Another Crop';
+
+    const max = seasonCropNames.length;
+    if (chosen.length < max) {
+        addButton.addEventListener('click', () => {
+            state.cropRows.push({
+                id: state.cropRows.length + 1,
+                cropName: '',
+                seedCount: 0,
+                cropsSold: 0,
+                jarred: 0,
+                kegged: 0,
+                aged: 0
+            });
+            renderCropRows();
+        });
+        container.appendChild(addButton);
+    }
 }
 
 // Enable/disable the “Add another crop” button
@@ -201,7 +228,10 @@ function updateAddButtonState() {
     if (!addButton) return;
 
     const cropRowElements = document.querySelectorAll('.crop-row');
-    const noMoreRows = state.cropRows.length >= cropRowElements.length;
+    const seasonalLimit = getSeasonCrops().length;
+    const chosen = state.cropRows.map(r => r.cropName).filter(Boolean);
+    const noMoreRows = chosen.length >= seasonalLimit;
+
 
     addButton.style.display = noMoreRows ? 'none' : 'inline-block';
 }
@@ -211,7 +241,8 @@ function addCropRow() {
     const limit = getSeasonCrops().length;
     const chosen = state.cropRows.map(r => r.cropName).filter(v => v);
     const maxRows = document.querySelectorAll('.crop-row').length;
-    if (chosen.length >= limit || state.cropRows.length >= maxRows) return;
+    if (chosen.length >= limit) return;
+
 
     state.cropRows.push({
         id: state.cropRows.length + 1,
@@ -242,7 +273,6 @@ function setupRowEventListeners(rowEl, idx) {
         };
         inp.value = '';
         updateCalculationSection(rowEl, idx);
-        updateAddButtonState();
     });
 
     inp.addEventListener('input', e => {
@@ -386,39 +416,74 @@ function recalculateAllRows() {
 
 // Handles the “Distribute Crops” button
     
-    function handleDistribution() {
-  state.distributionVisible = true;
- document.querySelectorAll('.crop-row').forEach((rowEl, idx) => {
-    updateCalculationSection(rowEl, idx);
-  });
+function handleDistribution() {
+    state.distributionVisible = true;
 
-  document.getElementById('final-calculate').disabled = false;
-  document.getElementById('show-distribution').style.display = 'none';
-}
+    const panel = document.querySelector('.distribution-panel');
+    panel.innerHTML = `
+        <div class="distribution-wrapper" style="border: 2px solid var(--color-body-text); padding: 20px; border-radius: var(--border-radius-main); margin-top: 2em;">
+            <h1>Distribute Your Crops</h1>
+        </div>
+    `;
 
-// Attaches input listeners inside each calculation section
-function setupCalcInputs(calcSection, idx) {
-    if (!calcSection) return;
-    const totalOut = (() => {
-        const r = state.cropRows[idx];
-        const c = cropsData.find(x => x.Crop === r.cropName && x.Season === getSeasonName());
-        return c
-            ? (c.Type === 'Multi' && typeof c.PerSzn === 'number'
-                ? r.seedCount * c.PerSzn
-                : r.seedCount)
-            : 0;
-    })();
+    const wrapper = panel.querySelector('.distribution-wrapper');
 
-    ['crops-sold','jarred','kegged','aged'].forEach(cls => {
-        const input = calcSection.querySelector(`.${cls}`);
-        if (!input) return;
+    state.cropRows.forEach((r, idx) => {
+        if (!r.cropName || r.seedCount <= 0) return;
+
+        const crop = cropsData.find(c => c.Crop === r.cropName && c.Season === getSeasonName());
+        if (!crop) return;
+
+        const totalOut = crop.Type === 'Multi' && typeof crop.PerSzn === 'number'
+            ? r.seedCount * crop.PerSzn
+            : r.seedCount;
+
+        let html = `
+            <div class="crop-distribution" style="margin-bottom: 2em;">
+                <h2>${r.cropName}</h2>
+                <p><strong>Total Crops Available: ${totalOut}</strong></p>
+                <div>
+                    <label>Crops Sold: <input type="number" class="crops-sold" data-idx="${idx}" min="0" max="${totalOut}" value="${r.cropsSold || ''}" /></label>
+                </div>`;
+
+        if (isValidArtisanValue(crop.Jar)) {
+            html += `
+                <div>
+                    <label>Jarred: <input type="number" class="jarred" data-idx="${idx}" min="0" max="${totalOut}" value="${r.jarred || ''}" /></label>
+                </div>`;
+        }
+
+        if (isValidArtisanValue(crop.Keg)) {
+            html += `
+                <div>
+                    <label>Kegged: <input type="number" class="kegged" data-idx="${idx}" min="0" max="${totalOut}" value="${r.kegged || ''}" /></label>
+                </div>`;
+        }
+
+        if (isValidArtisanValue(crop.Aged)) {
+            html += `
+                <div>
+                    <label>Aged Wine: <input type="number" class="aged" data-idx="${idx}" min="0" max="${totalOut}" value="${r.aged || ''}" /></label>
+                </div>`;
+        }
+
+        html += `</div>`;
+        wrapper.innerHTML += html;
+    });
+
+    // Add input listeners
+    wrapper.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', e => {
-            let val = Math.max(0, parseInt(e.target.value) || 0);
-            val = Math.min(val, totalOut);
-            state.cropRows[idx][cls.replace('-', '')] = val;
+            const idx = parseInt(e.target.dataset.idx);
+            const cls = e.target.className;
+            const val = Math.max(0, parseInt(e.target.value) || 0);
+            state.cropRows[idx][cls] = val;
             calculateRowProfit(idx);
         });
     });
+
+    document.getElementById('final-calculate').disabled = false;
+    document.getElementById('show-distribution').style.display = 'none';
 }
 
 // Final results table
