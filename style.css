@@ -141,6 +141,12 @@ input, textarea, select {
     outline-offset: 0.2em;
 }
 
+.navbar__links a:hover {
+    background-color: var(--color-title);
+    color: var(--color-content-background);
+    transform: translateY(-2px);
+}
+
 
 /* Main content */
 main {
