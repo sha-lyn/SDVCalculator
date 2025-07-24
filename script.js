@@ -2,7 +2,7 @@
 
 // Helper: check if an artisan product value is valid
 function isValidArtisanValue(val) {
-    return val !== "" && val !== undefined && val !== null && val !== 0;
+    return typeof val === 'number' && val >0;
 }
 
 // Global data 
@@ -197,13 +197,13 @@ function renderCropRows() {
 
 // Enable/disable the “Add another crop” button
 function updateAddButtonState() {
-    const btn = document.getElementById('add-crop-button');
-    if (!btn) return;
-    const seasonList = getSeasonCrops();
-    const chosen = state.cropRows.map(r => r.cropName).filter(v => v);
-    const rows = document.querySelectorAll('.crop-row');
-    const full = chosen.length >= seasonList.length || state.cropRows.length >= rows.length;
-    btn.style.display = full ? 'none' : 'block';
+    const addButton = document.getElementById('add-crop-button');
+    if (!addButton) return;
+
+    const cropRowElements = document.querySelectorAll('.crop-row');
+    const noMoreRows = state.cropRows.length >= cropRowElements.length;
+
+    addButton.style.display = noMoreRows ? 'none' : 'inline-block';
 }
 
 // Appends a fresh row in state & re-renders
@@ -265,15 +265,19 @@ function updateCalculationSection(rowEl, idx) {
     if (!crop) return;
 
     // Determine total crops this season
-    const totalOut = crop.Type === 'Single'
-        ? r.seedCount
-        : r.seedCount * crop.PerSzn;
+    const totalOut = crop.Type === 'Multi' && typeof crop.PerSzn === 'number'
+        ? r.seedCount * crop.PerSzn
+        : r.seedCount
 
     // Build the UI block
     let html = `
         <div class="calculation-section active">
             <div class="crop-output">
                 <strong>Total Crops Available: ${totalOut}</strong>
+                ${crop.Type === 'Multi' ? ` 
+                    <div class="crop-note">
+                    (This crop produces multiple harvests per seed throughout the season.)
+                    </div>` :''}
             </div>
             <h4 class="form-legend" style="font-size:18px; margin-bottom:15px;">
                 Distribute Your Crops
@@ -386,8 +390,6 @@ function recalculateAllRows() {
   state.distributionVisible = true;
  document.querySelectorAll('.crop-row').forEach((rowEl, idx) => {
     updateCalculationSection(rowEl, idx);
-    setupCalcInputs(rowEl.parentElement.querySelector('.calculation-section'), idx);
-    calculateRowProfit(idx);
   });
 
   document.getElementById('final-calculate').disabled = false;
@@ -401,7 +403,9 @@ function setupCalcInputs(calcSection, idx) {
         const r = state.cropRows[idx];
         const c = cropsData.find(x => x.Crop === r.cropName && x.Season === getSeasonName());
         return c
-            ? (c.Type === 'Single' ? r.seedCount : r.seedCount * c.PerSzn)
+            ? (c.Type === 'Multi' ? && typeof c.PerSzn === 'number'
+                ? r.seedCount * c.PerSzn
+                : r.seedcount)
             : 0;
     })();
 

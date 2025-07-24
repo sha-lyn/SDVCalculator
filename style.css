@@ -313,6 +313,12 @@ footer p {
     font-size: 1rem;
 }
 
+/* Multi Crop Note */
+.crop-note {
+    font-size: 0.85rem;
+    color: var(--color-heading);
+    margin-top: 0.25rem;
+}
 
 
 /* No Javascript Warning */
