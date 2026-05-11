@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Stardew Valley Crop Calculator - Calculate optimal crop profits with distribution options">
     <title>Stardew Valley Crop Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -39,106 +40,135 @@
             </div>
             
             <form id="crop-form" class="crop-form">
-                <!-- Farming Level Section -->
-                <fieldset class="form-section">
-                    <legend>What is your Farming skill level?</legend>
-                    <div class="level-control">
-                        <input type="range" id="lvl" name="lvl" min="0" max="14" value="1" 
-                               oninput="this.nextElementSibling.value = this.value">
-                        <output>1</output>
-                    </div>
-                    <div class="probability-display-container"></div>
-                </fieldset>
                 
-                <!-- Season Selection -->
-                <fieldset class="form-section">
-                    <legend>What season are you choosing crops from?</legend>
-                    <div class="season-options">
-                        <label class="season-label">
-                            <input type="radio" name="season" id="spring" value="spring" checked>
-                            <span class="season-name">
-                                <i class="fas fa-leaf"></i>
-                                Spring
-                            </span>
-                        </label>
-                        <label class="season-label">
-                            <input type="radio" name="season" value="summer" id="summer">
-                            <span class="season-name">
-                                <i class="fas fa-sun"></i>
-                                Summer
-                            </span>
-                        </label>
-                        <label class="season-label">
-                            <input type="radio" name="season" value="fall" id="fall">
-                            <span class="season-name">
-                                <i class="fas fa-tree"></i>
-                                Fall
-                            </span>
-                        </label>
-                        <label class="season-label">
-                            <input type="radio" name="season" value="winter" id="winter">
-                            <span class="season-name">
-                                <i class="fas fa-snowflake"></i>
-                                Winter
-                            </span>
-                        </label>
+                <div id="phase1-global">
+                    <h2 style="color: var(--color-primary); font-family: var(--font-family-heading); margin-bottom: 15px; border-bottom: 2px solid var(--color-border); padding-bottom: 5px;">
+                        1. Global Farm Settings
+                    </h2>
+                    
+                    <fieldset class="form-section">
+                        <legend>Season</legend>
+                        <div class="radio-group season-selector" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <label class="radio-card season-card spring-card">
+                                <input type="radio" name="season" value="spring" id="spring" checked>
+                                <div class="card-content">
+                                    <i class="fas fa-seedling"></i> Spring
+                                </div>
+                            </label>
+                            <label class="radio-card season-card summer-card">
+                                <input type="radio" name="season" value="summer" id="summer">
+                                <div class="card-content">
+                                    <i class="fas fa-sun"></i> Summer
+                                </div>
+                            </label>
+                            <label class="radio-card season-card fall-card">
+                                <input type="radio" name="season" value="fall" id="fall">
+                                <div class="card-content">
+                                    <i class="fas fa-leaf"></i> Fall
+                                </div>
+                            </label>
+                            <label class="radio-card season-card winter-card">
+                                <input type="radio" name="season" value="winter" id="winter">
+                                <div class="card-content">
+                                    <i class="fas fa-snowflake"></i> Winter
+                                </div>
+                            </label>
+                            <label class="radio-card season-card island-card">
+                                <input type="radio" name="season" value="ginger_island" id="ginger_island">
+                                <div class="card-content">
+                                    <i class="fas fa-umbrella-beach"></i> Ginger Island
+                                </div>
+                            </label>
+                            <label class="radio-card season-card greenhouse-card">
+                                <input type="radio" name="season" value="greenhouse" id="greenhouse">
+                                <div class="card-content">
+                                    <i class="fas fa-home"></i> Greenhouse
+                                </div>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-section">
+                        <legend>Farming Level</legend>
+                        <div class="input-group">
+                            <label for="lvl">Farming Level (including food buffs): <span id="lvl-display" style="font-weight: bold; color: var(--color-primary);">1</span></label>
+                            <input type="range" id="lvl" name="lvl" min="0" max="14" value="1" class="slider" oninput="document.getElementById('lvl-display').innerText = this.value">
+                        </div>
+                    </fieldset>
+                    
+                    <fieldset class="form-section">
+                        <legend>Professions</legend>
+                        <div class="input-group checkbox-group" style="display: flex; gap: 20px;">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="tiller" name="tiller">
+                                <span class="custom-checkbox"></span>
+                                Tiller (+10% Crop Price)
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="artisan" name="artisan">
+                                <span class="custom-checkbox"></span>
+                                Artisan (+40% Artisan Goods)
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-section">
+                        <legend>Machine Inventory</legend>
+                        <p class="description" style="font-size: 0.9em; color: var(--color-text-light); margin-bottom: 10px;">How many machines do you currently own? (Used to calculate processing days)</p>
+                        <div class="inventory-grid" style="display: flex; flex-wrap: wrap; gap: 15px;">
+                            <label style="display: flex; flex-direction: column; gap: 5px;">
+                                <span><i class="fas fa-jar"></i> Preserves Jars</span>
+                                <input type="number" id="inv-jars" min="0" value="0" class="input-field" style="width: 100px;">
+                            </label>
+                            <label style="display: flex; flex-direction: column; gap: 5px;">
+                                <span><i class="fas fa-wine-bottle"></i> Kegs</span>
+                                <input type="number" id="inv-kegs" min="0" value="0" class="input-field" style="width: 100px;">
+                            </label>
+                            <label style="display: flex; flex-direction: column; gap: 5px;">
+                                <span><i class="fas fa-box"></i> Dehydrators</span>
+                                <input type="number" id="inv-dehydrators" min="0" value="0" class="input-field" style="width: 100px;">
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <div class="form-buttons" id="phase1-controls" style="text-align: center; margin-top: 25px; margin-bottom: 15px;">
+                        <button type="button" id="choose-seeds-btn" class="btn btn-primary" style="font-size: 1.1em; padding: 12px 24px;">
+                            <i class="fas fa-seedling"></i> Choose Seeds
+                        </button>
                     </div>
-                </fieldset>
-                
-                <!-- Professions -->
-                <fieldset class="form-section">
-                    <legend>Do you have either of these Professions?</legend>
-                    <div class="profession-options">
-                        <label class="profession-label">
-                            <input type="checkbox" name="tiller" id="tiller" value="tiller">
-                            <span class="profession-info">
-                                <strong>Tiller</strong>
-                                <small>+10% to crop value</small>
-                            </span>
-                        </label>
-                        <label class="profession-label">
-                            <input type="checkbox" name="artisan" id="artisan" value="artisan">
-                            <span class="profession-info">
-                                <strong>Artisan</strong>
-                                <small>+40% to artisan goods</small>
-                            </span>
-                        </label>
-                    </div>
-                </fieldset>
-                
-                <!-- Crop Selection -->
-                <fieldset class="form-section">
-                    <legend>Choose your crops and seed counts</legend>
-                    <div class="crop-container">
-                        <!-- Crop rows will be dynamically generated here -->
-                    </div>
-                </fieldset>
-                
-                <!-- Control Buttons -->
-                <div class="form-buttons">
-                    <button type="button" id="show-distribution" class="btn btn-primary">
-                        <i class="fas fa-chart-pie"></i>
-                        Distribute Crops
-                    </button>
-                    <button type="reset" class="btn btn-secondary">
-                        <i class="fas fa-undo"></i>
-                        Clear Form
-                    </button>
-                    <button type="submit" id="final-calculate" class="btn btn-success" disabled>
-                        <i class="fas fa-calculator"></i>
-                        Calculate
-                    </button>
+
                 </div>
-            </form>
-            
-            <!-- Results Section -->
-             
-            <div class="result-section" id="results" aria-live="polite">
-                <!-- Results will be displayed here -->
-            </div>
-        </main>
-    </div>
-    
-    <script src="script.js"></script>
-</body>
-</html>
+                
+                <fieldset class="form-section" id="phase2-planting" style="display: none;">
+                    <legend>2. Planting Table</legend>
+                    <p class="description" style="font-size: 0.9em; color: var(--color-text-light); margin-bottom: 15px;">Select your crops, seed quantities, and the day you are planting them.</p>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="planting-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--color-border);">
+                                    <th style="padding: 10px;">Crop</th>
+                                    <th style="padding: 10px;">Seeds Planted</th>
+                                    <th style="padding: 10px;">Seed Source</th>
+                                    <th style="padding: 10px;">Planting Day</th>
+                                    <th style="padding: 10px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="planting-rows-container">
+                                </tbody>
+                        </table>
+                    </div>
+                    
+                    <button type="button" id="add-crop-row" class="btn btn-secondary" style="margin-top: 15px;">
+                        <i class="fas fa-plus"></i> Add Another Crop
+                    </button>
+
+                    <div class="form-buttons" style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button type="button" id="generate-harvest" class="btn btn-primary">
+                            <i class="fas fa-cog"></i> Generate Harvest
+                        </button>
+                        <button type="reset" id="clear-form" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Clear Form
+                        </button>
+                    </div>
+                </fieldset>
